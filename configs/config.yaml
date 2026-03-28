@@ -1,0 +1,50 @@
+data:
+  raw_dir: data/raw
+  processed_path: data/processed/sg_sequences.pt
+  window_size: 50
+  num_vehicles: 4
+  num_lanes: 3
+  interaction_range: 50.0
+  phi_threshold: 0.3
+  logistic_L: 1.0
+  logistic_k: 0.1
+  logistic_d0: 25.0
+
+model:
+  node_feat_dim: 4
+  edge_feat_dim: 5
+  gat_hidden: 64
+  gat_heads: 4
+  transformer_d_model: 128
+  transformer_nhead: 8
+  transformer_num_layers: 3
+  latent_dim: 64
+
+training:
+  batch_size: 32
+  lr: 0.001
+  vgae_loss_alpha: 1.0
+  vgae_loss_beta: 1.0
+  vgae_loss_gamma: 0.1
+
+rl:
+  n_steps_input: 10
+  episode_length: 200
+  n_candidates: 50
+  reward_a: 2.0
+  reward_b: 0.02
+  reward_c: 0.01
+  ppo_clip_range: 0.2
+  ppo_n_steps: 2048
+  ppo_batch_size: 64
+  ppo_ent_coef: 0.01
+  total_episodes: 3000
+  max_lateral_per_step: 0.3
+  max_longitudinal_per_step: 3.0
+
+causal:
+  delta_x: 40.0
+  delta_y1: 0.5
+  delta_y2: 0.8
+  delta_collision: 1.5
+  min_interval_frames: 25

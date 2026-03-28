@@ -1,0 +1,10 @@
+data/raw/
+data/processed/
+data/generated/
+checkpoints/
+__pycache__/
+*.pyc
+*.pt
+*.zip
+*.egg-info/
+.DS_Store
