@@ -81,6 +81,11 @@ class ScenarioGenEnv(gym.Env):
         self.num_vehicles = int(config["data"]["num_vehicles"])
         self.vehicle_ids = list(range(1, self.num_vehicles + 1))
         self.max_steps = self.episode_length - self.n_steps_input
+        self.obs_node_mean = None
+        self.obs_node_std = None
+        if hasattr(self.vgae_model, "node_mean") and hasattr(self.vgae_model, "node_std"):
+            self.obs_node_mean = self.vgae_model.node_mean.detach().cpu().float().numpy().reshape(1, 1, -1)
+            self.obs_node_std = self.vgae_model.node_std.detach().cpu().float().numpy().reshape(1, 1, -1)
 
         obs_dim = self.n_steps_input * self.num_vehicles * self.node_feat_dim
         self.observation_space = spaces.Box(
@@ -178,6 +183,8 @@ class ScenarioGenEnv(gym.Env):
             [graph.x.detach().cpu().float().numpy() for graph in self.current_sg_seq],
             axis=0,
         )
+        if self.obs_node_mean is not None and self.obs_node_std is not None:
+            stacked = (stacked - self.obs_node_mean) / np.clip(self.obs_node_std, 1e-6, None)
         return np.nan_to_num(stacked.reshape(-1), nan=0.0, posinf=0.0, neginf=0.0).astype(np.float32)
 
     def _sample_candidates(self) -> list[Data]:

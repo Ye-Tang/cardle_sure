@@ -35,9 +35,16 @@ class EdgeDecoder(nn.Module):
         )
 
     def edge_prob_forward(self, node_embeds: Tensor) -> Tensor:
-        logits = node_embeds @ node_embeds.t()
+        if node_embeds.dim() == 2:
+            logits = node_embeds @ node_embeds.t()
+            probs = torch.sigmoid(logits)
+            mask = 1.0 - torch.eye(probs.size(0), device=probs.device, dtype=probs.dtype)
+            return probs * mask
+
+        logits = torch.matmul(node_embeds, node_embeds.transpose(-1, -2))
         probs = torch.sigmoid(logits)
-        mask = 1.0 - torch.eye(probs.size(0), device=probs.device, dtype=probs.dtype)
+        num_nodes = probs.size(-1)
+        mask = 1.0 - torch.eye(num_nodes, device=probs.device, dtype=probs.dtype).unsqueeze(0)
         return probs * mask
 
     def edge_feat_forward(self, node_embeds: Tensor, edge_index: Tensor) -> Tensor:

@@ -86,15 +86,32 @@ class SGTransformerDecoder(nn.Module):
 
     def forward(self, z: Tensor, seq_len: int) -> tuple[Tensor, Tensor]:
         """Decode a latent vector into node features and node hidden states."""
-        repeated = z.unsqueeze(0).repeat(seq_len, 1)
-        memory = self.latent_proj(repeated)
-        pe = sinusoidal_pe(seq_len, self.d_model).to(memory.device)
-        memory = (memory + pe).unsqueeze(0)
-        decoded = self.decoder(tgt=memory, memory=memory).squeeze(0)
-        final_token = decoded[-1]
+        if z.dim() == 1:
+            repeated = z.unsqueeze(0).repeat(seq_len, 1)
+            memory = self.latent_proj(repeated)
+            pe = sinusoidal_pe(seq_len, self.d_model).to(memory.device)
+            memory = (memory + pe).unsqueeze(0)
+            decoded = self.decoder(tgt=memory, memory=memory).squeeze(0)
+            final_token = decoded[-1]
 
-        node_pred = self.node_out(final_token).reshape(self.num_vehicles, self.node_feat_dim)
+            node_pred = self.node_out(final_token).reshape(self.num_vehicles, self.node_feat_dim)
+            node_hidden = self.node_hidden_out(final_token).reshape(
+                self.num_vehicles,
+                self.node_hidden_dim,
+            )
+            return node_pred, node_hidden
+
+        batch_size = z.size(0)
+        repeated = z.unsqueeze(1).repeat(1, seq_len, 1)
+        memory = self.latent_proj(repeated)
+        pe = sinusoidal_pe(seq_len, self.d_model).to(memory.device).unsqueeze(0)
+        memory = memory + pe
+        decoded = self.decoder(tgt=memory, memory=memory)
+        final_token = decoded[:, -1, :]
+
+        node_pred = self.node_out(final_token).reshape(batch_size, self.num_vehicles, self.node_feat_dim)
         node_hidden = self.node_hidden_out(final_token).reshape(
+            batch_size,
             self.num_vehicles,
             self.node_hidden_dim,
         )

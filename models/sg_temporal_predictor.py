@@ -197,19 +197,28 @@ class SGTemporalPredictor(nn.Module):
         normalized_last_graph = self._normalize_graph(sg_seq[-1])
         mu, logvar, _ = self.vae(h)
         std = torch.exp(0.5 * logvar)
+        z_batch = mu.unsqueeze(0) + std.unsqueeze(0) * torch.randn(
+            k,
+            std.numel(),
+            device=std.device,
+            dtype=std.dtype,
+        )
+        node_delta_batch, node_hidden_delta_batch = self.transformer_dec(z_batch, seq_len=len(sg_seq))
+        node_pred_batch = node_delta_batch + normalized_last_graph.x.unsqueeze(0)
+        node_hidden_pred_batch = node_hidden_delta_batch + node_embed_seq[-1].unsqueeze(0)
+        edge_prob_batch = self.edge_decoder.edge_prob_forward(node_hidden_pred_batch)
 
         samples: list[Data] = []
-        for _ in range(k):
-            z = mu + std * torch.randn_like(std)
-            node_delta, node_hidden_delta = self.transformer_dec(z, seq_len=len(sg_seq))
-            node_pred = node_delta + normalized_last_graph.x
-            node_hidden_pred = node_hidden_delta + node_embed_seq[-1]
-            edge_prob = self.edge_decoder.edge_prob_forward(node_hidden_pred)
+        for sample_idx in range(k):
+            edge_prob = edge_prob_batch[sample_idx]
             pred_edge_index = self._edge_index_from_prob(edge_prob)
-            edge_feat_pred = self.edge_decoder.edge_feat_forward(node_hidden_pred, pred_edge_index)
+            edge_feat_pred = self.edge_decoder.edge_feat_forward(
+                node_hidden_pred_batch[sample_idx],
+                pred_edge_index,
+            )
             samples.append(
                 Data(
-                    x=self._denormalize_nodes(node_pred).detach().cpu(),
+                    x=self._denormalize_nodes(node_pred_batch[sample_idx]).detach().cpu(),
                     edge_index=pred_edge_index.detach().cpu(),
                     edge_attr=self._denormalize_edges(edge_feat_pred).detach().cpu(),
                 )
