@@ -111,7 +111,10 @@ def infer_acg(
                 )
 
                 if cond_a and cond_b and cond_c and cond_d:
-                    acg.add_causal_edge(vehicle_ids[leading_idx], vehicle_ids[following_idx])
+                    try:
+                        acg.add_causal_edge(vehicle_ids[leading_idx], vehicle_ids[following_idx])
+                    except ValueError:
+                        continue
 
     return acg
 

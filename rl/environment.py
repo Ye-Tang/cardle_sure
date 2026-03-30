@@ -143,6 +143,7 @@ class ScenarioGenEnv(gym.Env):
 
         sj = 0.0
         rsimilarity = 0.0
+        acg0 = None
         if terminated:
             trajectory = np.stack(self.full_trajectory, axis=0)
             acg0 = infer_acg(
@@ -160,7 +161,17 @@ class ScenarioGenEnv(gym.Env):
             self.candidates = self._sample_candidates()
 
         reward = float(rsimilarity + rsmoothness + rconstraint)
-        return self._obs(), reward, terminated, truncated, {"sj": float(sj)}
+        info = {
+            "sj": float(sj),
+            "reward_total": reward,
+            "reward_similarity": float(rsimilarity),
+            "reward_smoothness": float(rsmoothness),
+            "reward_constraint": float(rconstraint),
+        }
+        if terminated:
+            info["trajectory"] = np.stack(self.full_trajectory, axis=0)
+            info["acg0"] = acg0
+        return self._obs(), reward, terminated, truncated, info
 
     def _obs(self) -> np.ndarray:
         stacked = np.stack(
