@@ -148,6 +148,10 @@ def _trajectory_has_collision(traj: np.ndarray, threshold: float = 3.0) -> bool:
     return any(_min_pairwise_distance(frame) <= threshold for frame in traj)
 
 
+def _trajectory_min_distance(traj: np.ndarray) -> float:
+    return min(_min_pairwise_distance(frame) for frame in traj)
+
+
 def _sequence_to_array(sequence: list[Data]) -> np.ndarray:
     return np.stack([graph.x.detach().cpu().float().numpy() for graph in sequence], axis=0)
 
@@ -190,12 +194,32 @@ def prepare_datasets(
     """Prepare Set1/Set2/Set3/val splits for risk prediction."""
     highd_sequences: list[list[Data]] = torch.load(highd_sequences_path, weights_only=False)
     non_collision: list[np.ndarray] = []
+    fallback_candidates: list[tuple[float, np.ndarray]] = []
     for sequence in highd_sequences:
         arr = _sequence_to_array(sequence)
         if arr.shape[0] < n_input:
             continue
-        if not _trajectory_has_collision(arr):
+        min_dist = _trajectory_min_distance(arr)
+        if min_dist > 3.0:
             non_collision.append(arr)
+        fallback_candidates.append((min_dist, arr))
+
+    if len(non_collision) < 1000 and fallback_candidates:
+        fallback_candidates.sort(key=lambda item: item[0], reverse=True)
+        fallback_pool = [arr for _, arr in fallback_candidates[:1000]]
+        if len(non_collision) == 0:
+            warnings.warn(
+                "No strictly non-collision HighD sequences found; "
+                "falling back to the 1000 safest sequences ranked by min pairwise distance."
+            )
+            non_collision = fallback_pool
+        else:
+            existing_ids = {id(arr) for arr in non_collision}
+            for arr in fallback_pool:
+                if id(arr) not in existing_ids:
+                    non_collision.append(arr)
+                if len(non_collision) >= 1000:
+                    break
 
     generated_items = []
     generated_path = Path(generated_data_path)
