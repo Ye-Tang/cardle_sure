@@ -1,0 +1,15 @@
+﻿metric,value
+generated_scene_count,31.0
+high_severity_scene_count,3.0
+low_severity_scene_count,0.0
+mid_severity_scene_count,28.0
+high_mean_delta_v_mps,8.75
+high_mean_propagation_duration_sec,0.5333333333334167
+high_mean_ttc_1s,7.625531914893619
+high_mean_collision_progress_pct,80.12514361129872
+high_mean_proxy_complexity,5.0
+low_mean_delta_v_mps,
+low_mean_propagation_duration_sec,
+low_mean_ttc_1s,
+low_mean_collision_progress_pct,
+low_mean_proxy_complexity,
