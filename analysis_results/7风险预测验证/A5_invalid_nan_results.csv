@@ -1,0 +1,13 @@
+﻿type,method,set_name,collision_rate
+Type1,LSTM,Set1,
+Type1,LSTM,Set2,
+Type1,LSTM,Set3,
+Type1,GTF,Set1,
+Type1,GTF,Set2,
+Type1,GTF,Set3,
+Type2,LSTM,Set1,
+Type2,LSTM,Set2,
+Type2,LSTM,Set3,
+Type2,GTF,Set1,
+Type2,GTF,Set2,
+Type2,GTF,Set3,
