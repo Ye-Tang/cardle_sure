@@ -1,0 +1,13 @@
+﻿n_scenes,diversity_pct,analysis_type
+1,42.25,rear_end
+4,71.15,rear_end
+8,82.85,rear_end
+11,83.1,rear_end
+15,84.39999999999999,rear_end
+19,84.89999999999999,rear_end
+1,42.25,lane_change_conflict
+2,61.6,lane_change_conflict
+3,63.65,lane_change_conflict
+4,67.9,lane_change_conflict
+5,68.55,lane_change_conflict
+6,76.0,lane_change_conflict

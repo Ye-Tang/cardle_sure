@@ -1,0 +1,9 @@
+﻿metric,value
+rear_end_scene_count,19.0
+rear_end_final_diversity_pct,84.89999999999999
+lane_change_conflict_scene_count,6.0
+lane_change_conflict_final_diversity_pct,76.0
+inter_type_dtw_mean,43.67238002336087
+intra_lane_change_conflict_dtw_mean,33.127617507909974
+intra_rear_end_dtw_mean,46.867472363655864
+excluded_scene_count,6.0

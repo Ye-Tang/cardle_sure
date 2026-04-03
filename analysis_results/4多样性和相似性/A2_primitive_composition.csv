@@ -1,0 +1,9 @@
+﻿analysis_type,primitive,proportion
+rear_end,following,0.3059654869442809
+rear_end,lane_change,0.5931440913001166
+rear_end,accelerating,0.04965091083711184
+rear_end,decelerating,0.05123951091849059
+lane_change_conflict,following,0.3352877607652454
+lane_change_conflict,lane_change,0.544952781638493
+lane_change_conflict,accelerating,0.058885025780076705
+lane_change_conflict,decelerating,0.0608744318161849
