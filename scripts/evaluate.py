@@ -17,6 +17,30 @@ if str(PROJECT_ROOT) not in sys.path:
 from evaluation.evaluator import authenticity_score, diversity_score, rationality_scores
 
 
+def is_valid_generated_file(path: Path) -> bool:
+    if not path.exists() or path.stat().st_size == 0:
+        return False
+    try:
+        data = torch.load(path, weights_only=False)
+    except Exception:
+        return False
+    if not isinstance(data, list) or not data:
+        return False
+    return any(isinstance(item, dict) and "trajectory" in item for item in data)
+
+
+def resolve_generated_path(acg_type: int) -> Path | None:
+    candidates = sorted(
+        (PROJECT_ROOT / "data" / "generated").glob(f"type{acg_type}_*.pt"),
+        key=lambda path: int(path.stem.rpartition("_")[2]) if path.stem.rpartition("_")[2].isdigit() else -1,
+        reverse=True,
+    )
+    for path in candidates:
+        if is_valid_generated_file(path):
+            return path
+    return None
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--type", type=int, choices=[1, 2], default=None)
@@ -24,9 +48,9 @@ def parse_args() -> argparse.Namespace:
 
 
 def load_generated(acg_type: int) -> list[dict]:
-    path = PROJECT_ROOT / "data" / "generated" / f"type{acg_type}_1000.pt"
-    if not path.exists():
-        print(f"Warning: generated file missing for type {acg_type}: {path}")
+    path = resolve_generated_path(acg_type)
+    if path is None:
+        print(f"Warning: generated file missing for type {acg_type} under data/generated/")
         return []
     data = torch.load(path, weights_only=False)
     if not isinstance(data, list):

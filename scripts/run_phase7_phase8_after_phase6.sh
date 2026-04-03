@@ -6,7 +6,7 @@ LOG_DIR="$ROOT/logs"
 mkdir -p "$LOG_DIR"
 
 echo "[$(date '+%F %T')] Waiting for Phase 6 jobs to finish..."
-while pgrep -af "python scripts/generate_scenarios.py --type [12] --device cpu" >/dev/null; do
+while pgrep -af "python scripts/generate_scenarios.py --type [12]" >/dev/null; do
   sleep 60
 done
 

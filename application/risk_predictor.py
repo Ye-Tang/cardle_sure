@@ -25,6 +25,31 @@ from models.transformer_module import SGTransformerEncoder
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
+def is_valid_generated_file(path: Path) -> bool:
+    if not path.exists() or path.stat().st_size == 0:
+        return False
+    try:
+        data = torch.load(path, map_location="cpu", weights_only=False)
+    except Exception:
+        return False
+    if not isinstance(data, list) or not data:
+        return False
+    return any(isinstance(item, dict) and "trajectory" in item for item in data)
+
+
+def resolve_generated_path(acg_type: int) -> Path | None:
+    """Pick the best available generated-scenarios file for one accident type."""
+    candidates = sorted(
+        (PROJECT_ROOT / "data" / "generated").glob(f"type{acg_type}_*.pt"),
+        key=lambda path: int(path.stem.rpartition("_")[2]) if path.stem.rpartition("_")[2].isdigit() else -1,
+        reverse=True,
+    )
+    for path in candidates:
+        if is_valid_generated_file(path):
+            return path
+    return None
+
+
 class LSTMRiskPredictor(nn.Module):
     """LSTM-based binary traffic risk predictor."""
 
@@ -333,7 +358,9 @@ def compute_collision_rate(
 
 def run_experiment(acg_type: int, cfg: dict) -> dict[str, dict[str, float]]:
     """Run the full risk-prediction experiment for one accident type."""
-    generated_path = PROJECT_ROOT / "data" / "generated" / f"type{acg_type}_1000.pt"
+    generated_path = resolve_generated_path(acg_type)
+    if generated_path is None:
+        raise FileNotFoundError(f"no generated scenarios found for type {acg_type}")
     highd_path = PROJECT_ROOT / cfg["data"]["processed_path"]
     datasets = prepare_datasets(
         generated_data_path=str(generated_path),
