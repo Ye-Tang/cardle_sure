@@ -1,0 +1,14 @@
+﻿metric,value
+original_trajectory_count,10800.0
+generated_trajectory_count,9300.0
+original_scene_count,36.0
+generated_scene_count,31.0
+original_mean_rmse_m,0.12517987340931108
+generated_mean_rmse_m,0.10768177017904579
+original_compliance_rate_pct,78.83346106914877
+generated_compliance_rate_pct,74.98978790694326
+generated_proxy_jaccard_mean,0.9516129032258065
+generated_proxy_jaccard_gt_08_ratio,90.32258064516128
+generated_proxy_jaccard_p25,1.0
+generated_proxy_jaccard_p50,1.0
+generated_proxy_jaccard_p75,1.0
