@@ -284,22 +284,37 @@ def plot_diversity_curves(type1_df: pd.DataFrame, type2_df: pd.DataFrame, out_di
 
 def plot_collision_density(feature_df: pd.DataFrame, out_path: Path) -> None:
     plot_df = feature_df.dropna(subset=["collision_x", "collision_y"]).copy()
-    fig, axes = plt.subplots(1, 2, figsize=(12, 5), sharex=True, sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=(12, 5), sharex=False, sharey=False)
     type_to_title = {
         TYPE1: "Rear-end",
         TYPE2: "Lane-change conflict",
     }
     for ax, analysis_type in zip(axes, [TYPE1, TYPE2]):
         subset = plot_df[plot_df["analysis_type"] == analysis_type]
+        if subset.empty:
+            ax.set_title(type_to_title[analysis_type])
+            ax.set_xlabel("Collision X")
+            ax.set_ylabel("Collision Y")
+            continue
+
+        x_min = float(subset["collision_x"].min())
+        x_max = float(subset["collision_x"].max())
+        y_min = float(subset["collision_y"].min())
+        y_max = float(subset["collision_y"].max())
+        x_pad = max(1.0, 0.1 * max(x_max - x_min, 1.0))
+        y_pad = max(5.0, 0.1 * max(y_max - y_min, 1.0))
+
         if len(subset) >= 3:
             xy = subset[["collision_x", "collision_y"]].to_numpy().T
             kde = gaussian_kde(xy)
-            x_grid = np.linspace(subset["collision_x"].min() - 1, subset["collision_x"].max() + 1, 80)
-            y_grid = np.linspace(subset["collision_y"].min() - 5, subset["collision_y"].max() + 5, 120)
+            x_grid = np.linspace(x_min - x_pad, x_max + x_pad, 80)
+            y_grid = np.linspace(y_min - y_pad, y_max + y_pad, 120)
             xx, yy = np.meshgrid(x_grid, y_grid)
             zz = kde(np.vstack([xx.ravel(), yy.ravel()])).reshape(xx.shape)
             ax.contourf(xx, yy, zz, levels=12, cmap="YlOrRd", alpha=0.75)
         ax.scatter(subset["collision_x"], subset["collision_y"], s=30, color="#1f1f1f", alpha=0.8)
+        ax.set_xlim(x_min - x_pad, x_max + x_pad)
+        ax.set_ylim(y_min - y_pad, y_max + y_pad)
         ax.set_title(type_to_title[analysis_type])
         ax.set_xlabel("Collision X")
         ax.set_ylabel("Collision Y")
